@@ -1,0 +1,27 @@
+
+
+%Apro eeglab e carico (file-->load existing dataset->\...\LO0195_after_ica_applied.set) cosi da avere altre informazioni che mi torneranno utili
+
+%carico le trial (es. quelle sociali sincrone)
+load D:\Personal\Tesi_Magistrale\PARTE_1_ANALISI_STANDARD\dataset\LO0195\sociale_sincrono\sociale_sincrono.mat
+
+trials = double(trials_sociale_sincrono); %cambiare nome al cambiare del dataset caricato nella riga precedente
+
+
+sampling_rate = EEG.srate;
+sampling_period = 1/sampling_rate; % spazio temporale tra un campione e un altro
+single_trial_duration = 3000; %ms
+size_trials_set = size(trials);
+number_of_trials = size_trials_set(2) / single_trial_duration;
+
+
+%mi riporto le trials nella forma NChannel x LunghezzaTrial x NumeroTrials
+%con cui sono più a mio agio
+trials = reshape(trials, 128, single_trial_duration, []);
+
+%come trials considero solo quella parte che comprende solo gli ultimi 2000ms
+true_trials = zeros(128,2000,number_of_trials);
+true_trials = trials(:,1001:end,:); %copio solo gli ultimi 2000 punti di ogni trial
+
+
+%

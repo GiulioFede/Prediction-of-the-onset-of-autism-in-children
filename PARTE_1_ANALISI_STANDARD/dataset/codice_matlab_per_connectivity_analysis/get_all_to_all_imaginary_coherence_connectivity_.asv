@@ -1,0 +1,130 @@
+
+
+function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connectivity(channels_trials,sampling_rate)
+
+    load sampleEEGdata.mat
+
+    channels_trials = EEG.data;
+
+    [number_of_channels, length_of_single_trial, number_of_trials] = size(channels_trials);
+    
+    %bande da analizzare (inserisco gli estremi inferiori e superiori)
+    delta = [1,3]; %Hz
+    theta = [4,7]; %Hz
+    alpha = [8,12]; %Hz
+    beta =  [13,24]; %Hz
+    low_gamma = [30,45]; %Hz
+
+    bands = [delta; theta; alpha; beta; low_gamma];
+
+    number_of_bands = 5;
+
+    frequencies_of_interest  =  [];
+
+    %numero di frequenze da analizzare all'interno di ogni banda
+    number_of_inner_frequency_to_analyze = 10;
+
+    %per ogni banda, decido di analizzare 10 frequenze
+    for i=1:number_of_bands
+        
+        current_band = bands(i,:);
+        frequencies_of_interest = [frequencies_of_interest , logspace(log10(current_band(1)),log10(current_band(2)),number_of_inner_frequency_to_analyze) ];
+
+    end
+
+    %indico la finestra temporale di quando avviene lo stimolo (che si muove)
+    times_stimulus = 1000:3000;
+
+    %waveler parameter
+    times_wavelet = -1:1/sampling_rate:1;
+    half_wavelet = (length(times_wavelet)-1)/2;
+    wavelet_length = length(times_wavelet);
+    num_cycles    = logspace(log10(4),log10(10),length(freqs2use));
+
+    %parametri fft
+    all_trials_length = length_of_single_trial*number_of_trials;
+    convolution_length = wavelet_length+all_trials_length-1;
+
+    %creo una matrice di dimensione NxNxF, ossia 128x128xNumeroFrequenze
+    imaginary_coherence_matrix = zeros(number_of_channels, number_of_channels, length(freqs2use));
+
+
+    %per ogni canale i...
+    for channel_i = 1:number_of_channels
+        printf("Calcol")
+        %per ogni canale j...
+        for channel_j = 1:number_of_channels
+
+            chanidx    = zeros(1,2);
+            chanidx(1,1) = channel_i;
+            chanidx(1,2) = channel_j;
+ 
+            %calcolo lo spettro di ogni trial. NB: ognuno di loro conterrà i (es.) 12 spettri
+            %concatenati l'uno accanto all'altro
+            channel_i_trials_spectra = fft(reshape(channels_trials(chanidx(1),:,:),1,all_trials_length),convolution_length);
+            channel_j_trials_spectra = fft(reshape(channels_trials(chanidx(2),:,:),1,all_trials_length),convolution_length);
+            
+            % Imaginary Coherence: è una matrice che conterrà per tutte le
+            % frequenze di interesse i valori di imaginary coherence per
+            % ogni istante temporale. In realtà, siccome poi mi interesserà
+            % solo dall'istante dello stimolo in poi, salverò quelle
+            imaginary_coherence = zeros(length(freqs2use), length_of_single_trial);
+
+            %per ogni frequenza di interesse...
+            for fi=1:length(frequencies_of_interest)
+
+                %creo la wavelet
+                s =num_cycles(fi) / (2*pi*frequencies_of_interest(fi));
+                wavelet = exp(2*1i*pi*frequencies_of_interest(fi).*times_wavelet) .* exp(-times_wavelet.^2./(2*(s^2)));
+                wavelet_spectrum = fft(wavelet, convolution_length);
+
+                %prendo gli spettri già calcolati delle (es.) 12 trial e ne isolo solo la
+                %corrente frequenza fi
+                fi_component_channel_i = ifft(wavelet_spectrum .* channel_i_trials_spectra, convolution_length);
+                %taglio le ali
+                fi_component_channel_i = fi_component_channel_i(half_wavelet+1: end-half_wavelet);
+                %ho ottenuto (es.) 13 segnali che sarebbero ciascuna la componente
+                %frequenziale fi di una delle (es) 13 trial. Adesso rimetto tutto sotto
+                %forma di 3000x13
+                fi_component_channel_i_per_trial = reshape(fi_component_channel_i, length_of_single_trial, number_of_trials);
+
+                %faccio lo stesso per il canale 2
+                fi_component_channel_j = ifft(wavelet_spectrum .* channel_j_trials_spectra, convolution_length);
+                fi_component_channel_j = fi_component_channel_j(half_wavelet+1: end-half_wavelet);
+                fi_component_channel_j_per_trial = reshape(fi_component_channel_j, length_of_single_trial, number_of_trials);
+
+
+                % mean sta per l'expected value
+                cross_spectral_density_1 = mean(fi_component_channel_i_per_trial .* conj(fi_component_channel_i_per_trial),2); 
+                cross_spectral_density_2 = mean(fi_component_channel_j_per_trial .* conj(fi_component_channel_j_per_trial),2);
+                cross_spectral_density = mean(fi_component_channel_i_per_trial .* conj(fi_component_channel_j_per_trial),2);
+
+                 %calcolo la coherence
+                coherence = cross_spectral_density ./ sqrt(cross_spectral_density_1 .* cross_spectral_density_2);
+                %prendo la parte immaginaria e poi applico il modulo
+                imaginary_coherence(fi,:) = abs( imag(coherence) );
+
+            end
+
+            %{
+                
+                Adesso per il canale_i e il canale_j ho per F frequenze la
+                loro connettività dal tempo 0 al tempo al tempo 3000.
+
+                Quello che farò è estrarre solo le connettività nei tempi
+                di stimolo e farne una media cosi da avere la loro
+                connessione media durante lo stimolo per ogni frequenza.
+        
+            %}
+
+            imaginary_coherence_mean = mean(imaginary_coherence,2);
+
+            for f=1:length(frequencies_of_interest)
+                imaginary_coherence_matrix(channel_i, channel_j,f) = imaginary_coherence_mean(f);
+            end
+            
+
+    end
+
+
+end
