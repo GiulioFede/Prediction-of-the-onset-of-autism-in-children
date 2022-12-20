@@ -7,25 +7,30 @@
 
 Calcoleremo 5 mappe, una per ogni banda, avendo cura di fare la media del
 valore che quella banda assume in ogni elettrodo per regione.
+
+%ritorna una matrice MatrixOfRegionValuesPerBand 5x10 contenente per ogni
+banda i valori di regione ottenuti.
     
 %}
 
-function get_scalp_map_per_band(relative_power_band_per_channel, chanlocs) 
+function MatrixOfRegionValuesPerBand = get_scalp_map_per_band(relative_power_band_per_channel, chanlocs) 
+
+    MatrixOfRegionValuesPerBand = zeros(5,10);
 
     %abbiamo 5 bande, quindi 5 mappe
     num_maps = 5;
 
     %definisco gli indici degli elettrodi che fanno parte di ogni regione
-    LFP = [21,22,18,19,23,26,25,32];
-    RFP = [14,10,4,9,3,8,2,1];
-    LF  = [33,27,28,24,29,20,30,13,12,7];
-    RF  = [5,106,112,118,105,124,111,117,123,122];
-    LT  = [34,40,46,51,58,50,45,39];
-    LP  = [35,41,47,52,42,36,60,53,37,61,54,31];
-    RP  = [80,79,78,87,86,85,92,93,104,98,103,110];
-    RT  = [116,109,102,97,96,101,108,115];
-    LO  = [59,67,71,66,65,70];
-    RO  = [77,76,84,83,91,90];
+    LFP = [18,19,21,22,23,25,26,32];
+    RFP = [1,2,3,4,8,9,10,14];
+    LF  = [7,12,13,20,24,27,28,29,30,33,34,38];
+    RF  = [5,105,106,111,112,116,117,118,121,122,123,124];
+    LT  = [39,43,44,45,48,49,50,56,57,58,63,64];
+    LP  = [31,35,36,37,41,42,47,52,53,59,54,60,61,67];
+    RP  = [77,78,79,80,85,86,87,91,92,93,98,103,104,110];
+    RT  = [95,96,97,99,100,101,102,107,108,109,113,114,115,116,119,120];
+    LO  = [65,66,68,69,70,71,73,74];
+    RO  = [76,82,83,84,88,89,90,94];
 
     %{
 
@@ -97,6 +102,8 @@ function get_scalp_map_per_band(relative_power_band_per_channel, chanlocs)
                             LFP,        RFP,        LF,        RF,        LT,        LP,        RP,        RT,        LO,        RO, ...
                             "delta", chanlocs,7);
 
+    MatrixOfRegionValuesPerBand(1,:) = [LFP_mean_rp,RFP_mean_rp,LF_mean_rp,RF_mean_rp,LT_mean_rp,LP_mean_rp,RP_mean_rp,RT_mean_rp,LO_mean_rp,RO_mean_rp];
+
     %mappa per la banda theta
     LFP_mean_rp = get_region_value(LFP,relative_power_band_per_channel(:,2));
     RFP_mean_rp = get_region_value(RFP,relative_power_band_per_channel(:,2));
@@ -112,6 +119,8 @@ function get_scalp_map_per_band(relative_power_band_per_channel, chanlocs)
                             LFP,        RFP,        LF,        RF,        LT,        LP,        RP,        RT,        LO,        RO, ...
                             "theta", chanlocs,8);
  
+    MatrixOfRegionValuesPerBand(2,:) = [LFP_mean_rp,RFP_mean_rp,LF_mean_rp,RF_mean_rp,LT_mean_rp,LP_mean_rp,RP_mean_rp,RT_mean_rp,LO_mean_rp,RO_mean_rp];
+
     %mappa per la banda alpha
     LFP_mean_rp = get_region_value(LFP,relative_power_band_per_channel(:,3));
     RFP_mean_rp = get_region_value(RFP,relative_power_band_per_channel(:,3));
@@ -127,6 +136,8 @@ function get_scalp_map_per_band(relative_power_band_per_channel, chanlocs)
                             LFP,        RFP,        LF,        RF,        LT,        LP,        RP,        RT,        LO,        RO, ...
                             "alpha", chanlocs,9);
 
+    MatrixOfRegionValuesPerBand(3,:) = [LFP_mean_rp,RFP_mean_rp,LF_mean_rp,RF_mean_rp,LT_mean_rp,LP_mean_rp,RP_mean_rp,RT_mean_rp,LO_mean_rp,RO_mean_rp];
+
     %mappa per la banda beta
     LFP_mean_rp = get_region_value(LFP,relative_power_band_per_channel(:,4));
     RFP_mean_rp = get_region_value(RFP,relative_power_band_per_channel(:,4));
@@ -141,6 +152,8 @@ function get_scalp_map_per_band(relative_power_band_per_channel, chanlocs)
     createTopoplotForRegion(LFP_mean_rp,RFP_mean_rp,LF_mean_rp,RF_mean_rp,LT_mean_rp,LP_mean_rp,RP_mean_rp,RT_mean_rp,LO_mean_rp,RO_mean_rp, ...
                             LFP,        RFP,        LF,        RF,        LT,        LP,        RP,        RT,        LO,        RO, ...
                             "beta", chanlocs,10);
+
+    MatrixOfRegionValuesPerBand(4,:) = [LFP_mean_rp,RFP_mean_rp,LF_mean_rp,RF_mean_rp,LT_mean_rp,LP_mean_rp,RP_mean_rp,RT_mean_rp,LO_mean_rp,RO_mean_rp];
 
     %mappa per la banda low gamma
     LFP_mean_rp = get_region_value(LFP,relative_power_band_per_channel(:,5));
@@ -158,6 +171,8 @@ function get_scalp_map_per_band(relative_power_band_per_channel, chanlocs)
                             "low gamma", chanlocs,11);
 
     
+    MatrixOfRegionValuesPerBand(5,:) = [LFP_mean_rp,RFP_mean_rp,LF_mean_rp,RF_mean_rp,LT_mean_rp,LP_mean_rp,RP_mean_rp,RT_mean_rp,LO_mean_rp,RO_mean_rp];
+
 end
 
 
@@ -195,7 +210,7 @@ function createTopoplotForRegion(v1,v2,v3,v4,v5,v6,v7,v8,v9,v10, a1,a2,a3,a4,a5,
     topoplotIndie(value_of_map, chanlocs, 'electrodes','labels','numcontour',0);
     title(sprintf("Relative Power of %s band for each region",name_of_band));
     colorbar
-   %caxis([0 1])
+    %caxis([0 1])
     colormap jet
 
 end

@@ -1,0 +1,13 @@
+Di seguito tutte le informazioni di sintesi di quanto ottenuto nello script trials_extractor.m
+
+Info ad alto livello:
+ Numero totali di stimoli processati:64 
+ Numero totali di stimoli validi:58 
+
+Info in dettaglio:
+ Numero di epoche valide per SS: 13/16  
+ Numero di epoche valide per SA: 15/16 
+ Numero di epoche valide per NSS: 14/16  
+ Numero di epoche valide per NSA: 16/16  
+
+ Indici i-esimi degli stimoli non risultati validi: 22  43  51  52  53  54

@@ -12,7 +12,7 @@
     NB: 13 è un esempio del caso LO0195 sociale-sincrono
 %}
 
-function [average_spectrum_for_channel,hz] = get_average_spectrum_for_channel(true_trials, sampling_rate, baseline) %sarebbero gli ultimi 2000ms di ogni trial
+function [average_spectrum_for_channel,hz] = get_average_spectrum_for_channel(true_trials, sampling_rate, baseline, do_baseline_normalization) %sarebbero gli ultimi 2000ms di ogni trial
 
     number_of_channels = size(true_trials,1);
 
@@ -38,8 +38,16 @@ function [average_spectrum_for_channel,hz] = get_average_spectrum_for_channel(tr
         %trasformo in potenza comprendibile graficamente
         power=(power*2);
 
-        %normalizzo lo spettro di ogni trial con la propria baseline
-        normalized_power = 10*log10(power ./ squeeze(baseline(channel_i,:,:))' );
+        %Se si vuole fare la baseline normalization (versione vecchia)
+        if do_baseline_normalization == true
+            %normalizzo lo spettro di ogni trial con la propria baseline
+            normalized_power = 10*log10(power ./ squeeze(baseline(channel_i,:,:))' );
+            power = normalized_power;
+            fprintf("Normalizzazione fatta.\n");
+        else
+            fprintf("Normalizzazione fatta in precedenza. Procedo direttamente al calcolo dello spettro medio per canale.\n");
+        end
+       
 
         %{
             power è una matrice 501x13, ossia ognuna delle 13 trial ha 501
@@ -52,7 +60,7 @@ function [average_spectrum_for_channel,hz] = get_average_spectrum_for_channel(tr
             f3
             ...
         %}
-        average_power_spectrum_channel_i = mean(normalized_power,2);
+        average_power_spectrum_channel_i = mean(power,2);
 
         %lo salvo
         average_spectrum_for_channel(channel_i,:) = average_power_spectrum_channel_i;
