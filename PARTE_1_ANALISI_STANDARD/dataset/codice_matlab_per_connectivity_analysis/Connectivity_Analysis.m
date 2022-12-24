@@ -1,9 +1,15 @@
 
 
-%Apro eeglab e carico (file-->load existing dataset->\...\LO0195_after_ica_applied.set) cosi da avere altre informazioni che mi torneranno utili
+% Apro eeglab e carico (file-->load existing dataset->\...\LO0197_after_baseline_correction.set) cosi da avere altre informazioni che mi torneranno utili
 
 %carico le trial (es. quelle sociali sincrone)
 load D:\Personal\Tesi_Magistrale\PARTE_1_ANALISI_STANDARD\dataset\LO0195\sociale_sincrono\sociale_sincrono.mat
+
+%indica i path dove salvare i risultati
+root_ispc = 'D:\Personal\Tesi_Magistrale\PARTE_1_ANALISI_STANDARD\dataset\LO0195\sociale_sincrono\eeg_connectivity_analysis_results\ispc';
+root_imaginary_coherence = 'D:\Personal\Tesi_Magistrale\PARTE_1_ANALISI_STANDARD\dataset\LO0195\sociale_sincrono\eeg_connectivity_analysis_results\imaginary_coherence';
+
+
 
 trials = double(trials_sociale_sincrono); %cambiare nome al cambiare del dataset caricato nella riga precedente
 
@@ -18,16 +24,12 @@ number_of_trials = size_trials_set(2) / single_trial_duration;
 %con cui sono più a mio agio
 trials = reshape(trials, 128, single_trial_duration, []);
 
+
 [number_of_channels, length_of_single_trial, number_of_trials] = size(trials);
 
 %come trials considero solo quella parte che comprende solo gli ultimi 2000ms
 %true_trials = zeros(128,2000,number_of_trials);
 %true_trials = trials(:,1001:end,:); %copio solo gli ultimi 2000 punti di ogni trial
-
-
-
-
-
 
 
 
@@ -49,7 +51,7 @@ trials = reshape(trials, 128, single_trial_duration, []);
 
 %}
 
-%get_all_to_all_connectivity(channel_trials_without_volume_conduction, sampling_rate); 
+%get_all_to_all_connectivity(channel_trials_without_volume_conduction, sampling_rate, root_ispc); 
 
 
 %{
@@ -57,6 +59,12 @@ trials = reshape(trials, 128, single_trial_duration, []);
  Senza necessità di rimuovere la volume conduction posso calcolare la
  stessa matrice ma utilizzando l'Imaginary Coherence.
 
+ Computational time on my pc (Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
+ 2.80 GHz  16GB RAM Windows 10  NVIDIA GeForce GTX 1050 ):
+
+ 137 minutes (2.27 h) for a 128x3000x13 data
+ matrix.
+
 %}
 
-imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connectivity(trials, sampling_rate);
+imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connectivity(trials, sampling_rate, root_imaginary_coherence);

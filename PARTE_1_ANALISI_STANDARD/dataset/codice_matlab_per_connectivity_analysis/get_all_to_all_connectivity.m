@@ -1,7 +1,7 @@
 
 
 
-function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_trials,sampling_rate)
+function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_trials,sampling_rate, root_path)
 
     [number_of_channels, length_of_single_trial, number_of_trials] = size(channels_trials);
 
@@ -19,10 +19,12 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
     %voglio ottenere due all-to-all connectivity matrix per le frequenze da
     %1Hz fino a 45Hz (con salto nelle 25-29Hz)
     frequencies_of_interest = [];
+    %numero di frequenze da analizzare all'interno di ogni banda
+    number_of_inner_frequency_to_analyze = 15;
     for i=1:number_of_bands
         
         current_band = bands(i,:);
-        frequencies_of_interest = [frequencies_of_interest, current_band(1):current_band(2) ];
+        frequencies_of_interest = [frequencies_of_interest , logspace(log10(current_band(1)),log10(current_band(2)),number_of_inner_frequency_to_analyze) ];
 
     end
     
@@ -33,7 +35,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
     %intervallo numero di cicli: determinano la larghezza della wavelet (numero
     %di picchi interni. All'aumentare del valore delle frequenze da analizzare,
     %aumento anche la larghezza della wavelet
-    n_cycles = linspace(4,13,40);
+    n_cycles = linspace(4,13,length(frequencies_of_interest));
 
     %tempo complex Morlet wavelet tra -1 e 1 con stesso sampling rate del segnale
     times_wavelet = -1:(1/sampling_rate):1; %va bene se dispari (2001) cosi da trovare il centro
@@ -181,12 +183,31 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
             frequenze f che appartengono alla banda X
 
         %}
+        start_index = dsearchn(frequencies_of_interest',delta(1));
+        end_index = dsearchn(frequencies_of_interest',delta(2));
+        connectivity_matrix_for_delta_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, start_index,end_index);
+        writematrix(connectivity_matrix_for_delta_band,root_path+"\all_to_all_connectivity_delta.csv");
+        
+        start_index = dsearchn(frequencies_of_interest',theta(1));
+        end_index = dsearchn(frequencies_of_interest',theta(2));
+        connectivity_matrix_for_theta_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, start_index,end_index);
+        writematrix(connectivity_matrix_for_theta_band,root_path+"\all_to_all_connectivity_theta.csv");
 
-        connectivity_matrix_for_delta_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, 1,3);
-        connectivity_matrix_for_theta_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, 4,7);
-        connectivity_matrix_for_alpha_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, 8,12);
-        connectivity_matrix_for_beta_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, 13,24);
-        connectivity_matrix_for_low_gamma_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, 25,40); %NB al salto
+        start_index = dsearchn(frequencies_of_interest',alpha(1));
+        end_index = dsearchn(frequencies_of_interest',alpha(2));
+        connectivity_matrix_for_alpha_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, start_index,end_index);
+        writematrix(connectivity_matrix_for_alpha_band,root_path+"\all_to_all_connectivity_alpha.csv");
+
+
+        start_index = dsearchn(frequencies_of_interest',beta(1));
+        end_index = dsearchn(frequencies_of_interest',beta(2));
+        connectivity_matrix_for_beta_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, start_index,end_index);
+        writematrix(connectivity_matrix_for_beta_band,root_path+"\all_to_all_connectivity_beta.csv");
+
+        start_index = dsearchn(frequencies_of_interest',low_gamma(1));
+        end_index = dsearchn(frequencies_of_interest',low_gamma(2));
+        connectivity_matrix_for_low_gamma_band = get_average_connectivity_matrix(connectivity_matrix_by_frequency, start_index,end_index);
+        writematrix(connectivity_matrix_for_low_gamma_band,root_path+"\all_to_all_connectivity_low_gamma.csv");
 
         %adesso possiamo plottare ogni matrice di connessione all-to-all per tutte
         %le bande di interesse
@@ -196,7 +217,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         imagesc(squeeze(connectivity_matrix_for_delta_band));
         axis square
         set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-        title("All-to-all connectivity matrix for delta band during stimulus period [2000,3000]ms");
+        title("All-to-all connectivity matrix for delta band during stimulus period [1000,3000]ms");
         colorbar
 
         figure(4), clf
@@ -204,7 +225,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         imagesc(squeeze(connectivity_matrix_for_theta_band));
         axis square
         set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-        title("All-to-all connectivity matrix for theta band during stimulus period [2000,3000]ms");
+        title("All-to-all connectivity matrix for theta band during stimulus period [1000,3000]ms");
         colorbar
 
         figure(5), clf
@@ -212,7 +233,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         imagesc(squeeze(connectivity_matrix_for_alpha_band));
         axis square
         set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-        title("All-to-all connectivity matrix for alpha band during stimulus period [2000,3000]ms");
+        title("All-to-all connectivity matrix for alpha band during stimulus period [1000,3000]ms");
         colorbar
 
         figure(6), clf
@@ -220,7 +241,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         imagesc(squeeze(connectivity_matrix_for_beta_band));
         axis square
         set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-        title("All-to-all connectivity matrix for beta band during stimulus period [2000,3000]ms");
+        title("All-to-all connectivity matrix for beta band during stimulus period [1000,3000]ms");
         colorbar
 
         figure(7), clf
@@ -228,7 +249,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         imagesc(squeeze(connectivity_matrix_for_low_gamma_band));
         axis square
         set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-        title("All-to-all connectivity matrix for low gamma band during stimulus period [2000,3000]ms");
+        title("All-to-all connectivity matrix for low gamma band during stimulus period [1000,3000]ms");
         colorbar
 
 
@@ -243,10 +264,19 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         %}
 
         average_connectivity_matrix_delta = get_average_connectivity_matrix_per_region(connectivity_matrix_for_delta_band);
+        writematrix(average_connectivity_matrix_delta,root_path+"\region_to_region_connectivity_delta.csv");
+
         average_connectivity_matrix_theta = get_average_connectivity_matrix_per_region(connectivity_matrix_for_theta_band);
+        writematrix(average_connectivity_matrix_theta,root_path+"\region_to_region_connectivity_theta.csv");
+
         average_connectivity_matrix_alpha = get_average_connectivity_matrix_per_region(connectivity_matrix_for_alpha_band);
+        writematrix(average_connectivity_matrix_alpha,root_path+"\region_to_region_connectivity_alpha.csv");
+        
         average_connectivity_matrix_beta = get_average_connectivity_matrix_per_region(connectivity_matrix_for_beta_band);
+        writematrix(average_connectivity_matrix_beta,root_path+"\region_to_region_connectivity_beta.csv");
+
         average_connectivity_matrix_low_gamma = get_average_connectivity_matrix_per_region(connectivity_matrix_for_low_gamma_band);
+        writematrix(average_connectivity_matrix_low_gamma,root_path+"\region_to_region_connectivity_low_gamma.csv");
 
         %adesso possiamo plottare ogni matrice di connessione region-to-region per tutte
         %le frequenze di interesse
@@ -261,7 +291,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         set(gca,'YTick',1:number_of_channels);
         set(gca,'XTickLabel',labelNames);
         set(gca,'YTickLabel',labelNames);
-        title("Region-to-Region connectivity matrix for delta band during stimulus period [2000,3000]ms");
+        title("Region-to-Region connectivity matrix for delta band during stimulus period [1000,3000]ms");
         colorbar
 
         figure(9), clf
@@ -272,7 +302,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         set(gca,'YTick',1:number_of_channels);
         set(gca,'XTickLabel',labelNames);
         set(gca,'YTickLabel',labelNames);
-        title("Region-to-Region connectivity matrix for theta band during stimulus period [2000,3000]ms");
+        title("Region-to-Region connectivity matrix for theta band during stimulus period [1000,3000]ms");
         colorbar
 
         figure(10), clf
@@ -283,7 +313,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         set(gca,'YTick',1:number_of_channels);
         set(gca,'XTickLabel',labelNames);
         set(gca,'YTickLabel',labelNames);
-        title("Region-to-Region connectivity matrix for alpha band during stimulus period [2000,3000]ms");
+        title("Region-to-Region connectivity matrix for alpha band during stimulus period [1000,3000]ms");
         colorbar
 
         figure(11), clf
@@ -294,7 +324,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         set(gca,'YTick',1:number_of_channels);
         set(gca,'XTickLabel',labelNames);
         set(gca,'YTickLabel',labelNames);
-        title("Region-to-Region connectivity matrix for beta band during stimulus period [2000,3000]ms");
+        title("Region-to-Region connectivity matrix for beta band during stimulus period [1000,3000]ms");
         colorbar
 
         figure(12), clf
@@ -305,7 +335,7 @@ function all_to_all_matrix_connectivity = get_all_to_all_connectivity(channels_t
         set(gca,'YTick',1:number_of_channels);
         set(gca,'XTickLabel',labelNames);
         set(gca,'YTickLabel',labelNames);
-        title("Region-to-Region connectivity matrix for low gamma band during stimulus period [2000,3000]ms");
+        title("Region-to-Region connectivity matrix for low gamma band during stimulus period [1000,3000]ms");
         colorbar
 
 end
@@ -416,16 +446,16 @@ function indexes = get_indexes_of_electrodes_in_region(i)
 
     %definisco gli indici degli elettrodi che fanno parte di ogni regione
     %(in totale sono 88)
-    LFP = [21,22,18,19,23,26,25,32];
-    RFP = [14,10,4,9,3,8,2,1];
-    LF  = [33,27,28,24,29,20,30,13,12,7];
-    RF  = [5,106,112,118,105,124,111,117,123,122];
-    LT  = [34,40,46,51,58,50,45,39];
-    LP  = [35,41,47,52,42,36,60,53,37,61,54,31];
-    RP  = [80,79,78,87,86,85,92,93,104,98,103,110];
-    RT  = [116,109,102,97,96,101,108,115];
-    LO  = [59,67,71,66,65,70];
-    RO  = [77,76,84,83,91,90];
+    LFP = [18,19,21,22,23,25,26,32];
+    RFP = [1,2,3,4,8,9,10,14];
+    LF  = [7,12,13,20,24,27,28,29,30,33,34,38];
+    RF  = [5,105,106,111,112,116,117,118,121,122,123,124];
+    LT  = [39,43,44,45,48,49,50,56,57,58,63,64];
+    LP  = [31,35,36,37,41,42,47,52,53,59,54,60,61,67];
+    RP  = [77,78,79,80,85,86,87,91,92,93,98,103,104,110];
+    RT  = [95,96,97,99,100,101,102,107,108,109,113,114,115,116,119,120];
+    LO  = [65,66,68,69,70,71,73,74];
+    RO  = [76,82,83,84,88,89,90,94];
 
     switch i
         case 1

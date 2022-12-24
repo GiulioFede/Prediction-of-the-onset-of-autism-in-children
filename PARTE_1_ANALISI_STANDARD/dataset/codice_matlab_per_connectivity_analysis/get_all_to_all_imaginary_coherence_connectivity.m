@@ -1,6 +1,6 @@
 
 
-function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connectivity(channels_trials,sampling_rate)
+function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connectivity(channels_trials,sampling_rate,root_path)
 
 
     [number_of_channels, length_of_single_trial, number_of_trials] = size(channels_trials);
@@ -19,9 +19,9 @@ function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connect
     frequencies_of_interest  =  [];
 
     %numero di frequenze da analizzare all'interno di ogni banda
-    number_of_inner_frequency_to_analyze = 10;
+    number_of_inner_frequency_to_analyze = 15;
 
-    %per ogni banda, decido di analizzare 10 frequenze
+    %per ogni banda, decido di analizzare 15 frequenze
     fprintf("Creo frequenze di interesse.\n");
     for i=1:number_of_bands
         
@@ -71,7 +71,7 @@ function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connect
             %per ogni frequenza di interesse...
             for fi=1:length(frequencies_of_interest)
                 
-                fprintf(sprintf("Calcolo connessione tra canale %d e %d alla frequenza %s \n", channel_i, channel_j, num2str(fi)));
+                fprintf(sprintf("Calcolo connessione tra canale %d e %d alla frequenza %s \n", channel_i, channel_j, num2str(frequencies_of_interest(fi))));
                 %creo la wavelet
                 s =num_cycles(fi) / (2*pi*frequencies_of_interest(fi));
                 wavelet = exp(2*1i*pi*frequencies_of_interest(fi).*times_wavelet) .* exp(-times_wavelet.^2./(2*(s^2)));
@@ -142,60 +142,65 @@ function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connect
     start_index = dsearchn(frequencies_of_interest',delta(1));
     end_index = dsearchn(frequencies_of_interest',delta(2));
     imaginary_coherence_matrix_delta_band = mean(imaginary_coherence_matrix(:,:,start_index:end_index),3);
+    writematrix(imaginary_coherence_matrix_delta_band,root_path+"\all_to_all_connectivity_delta.csv");
 
     figure(100), clf
     imagesc(squeeze(imaginary_coherence_matrix_delta_band));
     axis square
     set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-    title("All-to-all connectivity matrix for delta band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("All-to-all connectivity matrix for delta band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
 
     %imaginary_coherence_matrix per banda theta
     start_index = dsearchn(frequencies_of_interest',theta(1));
     end_index = dsearchn(frequencies_of_interest',theta(2));
     imaginary_coherence_matrix_theta_band = mean(imaginary_coherence_matrix(:,:,start_index:end_index),3);
+    writematrix(imaginary_coherence_matrix_theta_band,root_path+"\all_to_all_connectivity_theta.csv");
 
     figure(101), clf
     imagesc(squeeze(imaginary_coherence_matrix_theta_band));
     axis square
     set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-    title("All-to-all connectivity matrix for theta band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("All-to-all connectivity matrix for theta band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
 
     %imaginary_coherence_matrix per banda alpha
     start_index = dsearchn(frequencies_of_interest',alpha(1));
     end_index = dsearchn(frequencies_of_interest',alpha(2));
     imaginary_coherence_matrix_alpha_band = mean(imaginary_coherence_matrix(:,:,start_index:end_index),3);
+    writematrix(imaginary_coherence_matrix_alpha_band,root_path+"\all_to_all_connectivity_alpha.csv");
 
     figure(102), clf
     imagesc(squeeze(imaginary_coherence_matrix_alpha_band));
     axis square
     set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-    title("All-to-all connectivity matrix for alpha band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("All-to-all connectivity matrix for alpha band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
 
     %imaginary_coherence_matrix per banda beta
     start_index = dsearchn(frequencies_of_interest',beta(1));
     end_index = dsearchn(frequencies_of_interest',beta(2));
     imaginary_coherence_matrix_beta_band = mean(imaginary_coherence_matrix(:,:,start_index:end_index),3);
+    writematrix(imaginary_coherence_matrix_beta_band,root_path+"\all_to_all_connectivity_beta.csv");
 
     figure(103), clf
     imagesc(squeeze(imaginary_coherence_matrix_beta_band));
     axis square
     set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-    title("All-to-all connectivity matrix for beta band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("All-to-all connectivity matrix for beta band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
 
     %imaginary_coherence_matrix per banda low_gamma
     start_index = dsearchn(frequencies_of_interest',low_gamma(1));
     end_index = dsearchn(frequencies_of_interest',low_gamma(2));
     imaginary_coherence_matrix_low_gamma_band = mean(imaginary_coherence_matrix(:,:,start_index:end_index),3);
+    writematrix(imaginary_coherence_matrix_low_gamma_band,root_path+"\all_to_all_connectivity_low_gamma.csv");
 
     figure(104), clf
     imagesc(squeeze(imaginary_coherence_matrix_low_gamma_band));
     axis square
     set(gca, 'xtick', 1:number_of_channels, 'ytick', 1:number_of_channels);
-    title("All-to-all connectivity matrix for low gamma band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("All-to-all connectivity matrix for low gamma band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
 
     %{
@@ -209,10 +214,19 @@ function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connect
     %}
 
     average_connectivity_matrix_delta = get_average_connectivity_matrix_per_region(imaginary_coherence_matrix_delta_band);
+    writematrix(average_connectivity_matrix_delta,root_path+"\region_to_region_connectivity_delta.csv");
+
     average_connectivity_matrix_theta = get_average_connectivity_matrix_per_region(imaginary_coherence_matrix_theta_band);
+    writematrix(average_connectivity_matrix_theta,root_path+"\region_to_region_connectivity_theta.csv");
+
     average_connectivity_matrix_alpha = get_average_connectivity_matrix_per_region(imaginary_coherence_matrix_alpha_band);
+    writematrix(average_connectivity_matrix_alpha,root_path+"\region_to_region_connectivity_alpha.csv");
+
     average_connectivity_matrix_beta = get_average_connectivity_matrix_per_region(imaginary_coherence_matrix_beta_band);
+    writematrix(average_connectivity_matrix_beta,root_path+"\region_to_region_connectivity_beta.csv");
+
     average_connectivity_matrix_low_gamma = get_average_connectivity_matrix_per_region(imaginary_coherence_matrix_low_gamma_band);
+    writematrix(average_connectivity_matrix_low_gamma,root_path+"\region_to_region_connectivity_low_gamma.csv");
 
     %adesso possiamo plottare ogni matrice di connessione region-to-region per tutte
     %le frequenze di interesse
@@ -227,7 +241,7 @@ function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connect
     set(gca,'YTick',1:number_of_channels);
     set(gca,'XTickLabel',labelNames);
     set(gca,'YTickLabel',labelNames);
-    title("Region-to-Region connectivity matrix for delta band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("Region-to-Region connectivity matrix for delta band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
 
     figure(106), clf
@@ -238,7 +252,7 @@ function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connect
     set(gca,'YTick',1:number_of_channels);
     set(gca,'XTickLabel',labelNames);
     set(gca,'YTickLabel',labelNames);
-    title("Region-to-Region connectivity matrix for theta band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("Region-to-Region connectivity matrix for theta band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
 
     figure(107), clf
@@ -249,7 +263,7 @@ function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connect
     set(gca,'YTick',1:number_of_channels);
     set(gca,'XTickLabel',labelNames);
     set(gca,'YTickLabel',labelNames);
-    title("Region-to-Region connectivity matrix for alpha band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("Region-to-Region connectivity matrix for alpha band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
 
     figure(108), clf
@@ -260,7 +274,7 @@ function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connect
     set(gca,'YTick',1:number_of_channels);
     set(gca,'XTickLabel',labelNames);
     set(gca,'YTickLabel',labelNames);
-    title("Region-to-Region connectivity matrix for beta band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("Region-to-Region connectivity matrix for beta band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
 
     figure(109), clf
@@ -271,7 +285,7 @@ function imaginary_coherence_matrix = get_all_to_all_imaginary_coherence_connect
     set(gca,'YTick',1:number_of_channels);
     set(gca,'XTickLabel',labelNames);
     set(gca,'YTickLabel',labelNames);
-    title("Region-to-Region connectivity matrix for low gamma band during stimulus period [2000,3000]ms using Imaginary Coherence");
+    title("Region-to-Region connectivity matrix for low gamma band during stimulus period [1000,3000]ms using Imaginary Coherence");
     colorbar
   
 end
@@ -288,6 +302,12 @@ function average_connectivity_matrix_per_region = get_average_connectivity_matri
     for region_i=1:10
 
         for region_j=1:10
+
+                %se le regioni sono uguali, pongo a 0
+                if region_i == region_j
+                    average_connectivity_matrix_per_region(region_i, region_j) = 0;
+                    continue
+                end
 
                 %ottengo gli indici della regione i
                 indexes_i = get_indexes_of_electrodes_in_region(region_i);
@@ -361,16 +381,16 @@ function indexes = get_indexes_of_electrodes_in_region(i)
 
     %definisco gli indici degli elettrodi che fanno parte di ogni regione
     %(in totale sono 88)
-    LFP = [21,22,18,19,23,26,25,32];
-    RFP = [14,10,4,9,3,8,2,1];
-    LF  = [33,27,28,24,29,20,30,13,12,7];
-    RF  = [5,106,112,118,105,124,111,117,123,122];
-    LT  = [34,40,46,51,58,50,45,39];
-    LP  = [35,41,47,52,42,36,60,53,37,61,54,31];
-    RP  = [80,79,78,87,86,85,92,93,104,98,103,110];
-    RT  = [116,109,102,97,96,101,108,115];
-    LO  = [59,67,71,66,65,70];
-    RO  = [77,76,84,83,91,90];
+    LFP = [18,19,21,22,23,25,26,32];
+    RFP = [1,2,3,4,8,9,10,14];
+    LF  = [7,12,13,20,24,27,28,29,30,33,34,38];
+    RF  = [5,105,106,111,112,116,117,118,121,122,123,124];
+    LT  = [39,43,44,45,48,49,50,56,57,58,63,64];
+    LP  = [31,35,36,37,41,42,47,52,53,59,54,60,61,67];
+    RP  = [77,78,79,80,85,86,87,91,92,93,98,103,104,110];
+    RT  = [95,96,97,99,100,101,102,107,108,109,113,114,115,116,119,120];
+    LO  = [65,66,68,69,70,71,73,74];
+    RO  = [76,82,83,84,88,89,90,94];
 
     switch i
         case 1

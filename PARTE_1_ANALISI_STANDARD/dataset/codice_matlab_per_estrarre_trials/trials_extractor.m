@@ -1,9 +1,8 @@
 
 %{
     Questo script prende in ingresso l'EEG completo (6.42 min circa) di un
-    determinato bambino/a. Una volta indicati i tempi di inizio e fine
-    (array) ne permette l'estrazione e il salvataggio nelle relative (4)
-    cartelle del bambino/a
+    determinato bambino/a e permette l'estrazione delle trials e il loro 
+    salvataggio nelle relative (4) cartelle del bambino/a
 %}
 
 
@@ -45,13 +44,20 @@ Questo caricherà le componenti. Infatti nella struttura EEG avremo 4 nuovi camp
 componenti rimosse, D:\...after_accept_ICA\LO0195_after_ica_applied.set
 •	Caricare questo nuovo dataset con eeglab
 
+
+Step 5
+- Estrarre le epoche e rimuovere la baseline
+- clear
+- Caricare questo nuovo dataset con eeglab
+
 %}
 
 %STEP5: inserire il path dove recuperare il file relativo dell'eye tracking
 path_eye_tracking_file = "D:\Personal\Tesi_Magistrale\PARTE_1_ANALISI_STANDARD\EYE-tracking per ogni candidato\LO0195.xlsx";
 
 %questa funzione analizza il file eye-tracking relativo e restituisce la
-%lista di indici degli stimoli non validi
+%lista di indici degli stimoli non validi (es. se c'è 54 significa che il
+%54-esimo stimolo, per esempio è DI40, non è valido)
 not_valid_stimulus = get_trials_to_exclude(path_eye_tracking_file);
 
 trials_sociale_sincrono = -1;
@@ -65,6 +71,14 @@ num_events = num_events(2);
 
 %questo contatore "conta" il numero di stimoli processati
 num_stimulus = 0;
+%conta il numero di stimoli sociali sincroni totali
+num_ss = 0;
+%conta il numero di stimoli sociali asincroni totali
+num_sa = 0;
+%conta il numero di stimoli non sociali sincroni totali
+num_nss = 0;
+%conta il numero di stimoli non sociali asincroni totali
+num_nsa = 0;
 
 for i=1:num_events
     
@@ -77,7 +91,8 @@ for i=1:num_events
 
     %se l'evento è sociale sincrono ed è valido
     if ( (EEG.event(i).type=="DI20" || EEG.event(i).type=="DI40") && ismember(num_stimulus,not_valid_stimulus)==false ) 
-        fprintf("%d) Evento sociale sincrono a tempo %d con primo valore per primo canale %f \n",i,start,EEG.data(1:1,start:start));
+        fprintf("%d) Evento sociale sincrono \n",i);
+        num_ss = num_ss+1;
         if trials_sociale_sincrono == -1
             trials_sociale_sincrono = double(EEG.data(1:128, start:(start+3000-1)));
         else
@@ -89,6 +104,7 @@ for i=1:num_events
     %se l'evento è sociale asincrono
     if ( (EEG.event(i).type=="DI30" || EEG.event(i).type=="DI50") && ismember(num_stimulus,not_valid_stimulus)==false )
         fprintf("%d) Evento sociale asincrono \n",i);
+        num_sa = num_sa+1;
         if trials_sociale_asincrono == -1
             trials_sociale_asincrono = double(EEG.data(1:128, start:(start+3000-1)));
         else
@@ -99,6 +115,7 @@ for i=1:num_events
     %se l'evento è non sociale sincrono
     if ( (EEG.event(i).type=="DI60" || EEG.event(i).type=="DI80") && ismember(num_stimulus,not_valid_stimulus)==false ) 
         fprintf("%d) Evento non sociale sincrono \n",i);
+        num_nss = num_nss+1;
         if trials_non_sociale_sincrono == -1
             trials_non_sociale_sincrono = double(EEG.data(1:128, start:(start+3000-1)));
         else
@@ -109,6 +126,7 @@ for i=1:num_events
     %se l'evento è non sociale asincrono
     if ( (EEG.event(i).type=="DI70" || EEG.event(i).type=="DI90") && ismember(num_stimulus,not_valid_stimulus)==false ) 
         fprintf("%d) Evento non sociale asincrono \n",i);
+        num_nsa = num_nsa+1;
         if trials_non_sociale_asincrono == -1
             trials_non_sociale_asincrono = double(EEG.data(1:128, start:(start+3000-1)));
         else
@@ -118,7 +136,7 @@ for i=1:num_events
     
 end
 
-%Salvataggio
+%Salvataggio delle epoche per categoria
 
 path_ss = "D:\Personal\Tesi_Magistrale\PARTE_1_ANALISI_STANDARD\dataset\LO0195\sociale_sincrono\sociale_sincrono.mat";
 path_sa = "D:\Personal\Tesi_Magistrale\PARTE_1_ANALISI_STANDARD\dataset\LO0195\sociale_asincrono\sociale_asincrono.mat";
@@ -129,3 +147,8 @@ save(path_ss, 'trials_sociale_sincrono');
 save(path_sa, 'trials_sociale_asincrono');
 save(path_ns, 'trials_non_sociale_sincrono');
 save(path_na, 'trials_non_sociale_asincrono');
+
+%salvataggio di un file di log che descrive quanto fatto
+fid = fopen('D:\Personal\Tesi_Magistrale\PARTE_1_ANALISI_STANDARD\dataset\LO0195\summary.txt','wt');
+fprintf(fid, sprintf('Di seguito tutte le informazioni di sintesi di quanto ottenuto nello script trials_extractor.m\n\nInfo ad alto livello:\n Numero totali di stimoli processati:%d \n Numero totali di stimoli validi:%d \n\nInfo in dettaglio:\n Numero di epoche valide per SS: %d/16  \n Numero di epoche valide per SA: %d/16 \n Numero di epoche valide per NSS: %d/16  \n Numero di epoche valide per NSA: %d/16  \n\n Indici i-esimi degli stimoli non risultati validi: %s',num_stimulus,(num_ss+num_sa+num_nss+num_nsa),num_ss,num_sa,num_nss,num_nsa, num2str(not_valid_stimulus) ));
+fclose(fid);
